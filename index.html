@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Drogen CO₂-Rechner</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 700px;
+      margin: 40px auto;
+      padding: 20px;
+      background: #f4f4f4;
+      border-radius: 10px;
+    }
+    label {
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+    }
+    .result {
+      margin-top: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px 10px;
+      text-align: left;
+    }
+    canvas {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Drogen CO₂-Rechner 💨</h1>
+  <form id="form">
+    <label>Alkohol (Bier) in Litern:</label>
+    <input type="number" id="alkohol" step="0.1">
+    <label>Nikotin (Zigaretten) pro Stück:</label>
+    <input type="number" id="zigaretten" step="1">
+    <label>Nikotin (Vapes) pro Stück:</label>
+    <input type="number" id="vapes" step="1">
+    <label>Cannabis (Gramm):</label>
+    <input type="number" id="cannabis" step="0.1">
+    <label>MDMA / Ecstasy (Tabletten):</label>
+    <input type="number" id="mdma" step="1">
+    <label>Kokain (Gramm):</label>
+    <input type="number" id="kokain" step="0.1">
+    <label>Amphetamine / Speed (Gramm):</label>
+    <input type="number" id="speed" step="0.1">
+    <label>LSD (Mikrogramm):</label>
+    <input type="number" id="lsd" step="10">
+    <label>Benzodiazepine (Tabletten):</label>
+    <input type="number" id="benzos" step="1">
+    <label>Ketamin (Gramm):</label>
+    <input type="number" id="ketamin" step="0.1">
+
+    <button type="button" onclick="berechnen()">Berechnen</button>
+  </form>
+
+  <div class="result" id="ausgabe" style="display:none;"></div>
+  <div id="tabelle" class="result" style="display:none;"></div>
+  <canvas id="diagramm" width="400" height="400" style="display:none;"></canvas>
+
+  <script>
+    let chart;
+
+    function berechnen() {
+      const getVal = id => parseFloat(document.getElementById(id).value) || 0;
+
+      const eingaben = {
+        "Alkohol (Bier)": getVal("alkohol"),
+        "Zigaretten": getVal("zigaretten"),
+        "Vapes": getVal("vapes"),
+        "Cannabis": getVal("cannabis"),
+        "MDMA": getVal("mdma"),
+        "Kokain": getVal("kokain"),
+        "Speed": getVal("speed"),
+        "LSD": getVal("lsd"),
+        "Benzodiazepine": getVal("benzos"),
+        "Ketamin": getVal("ketamin")
+      };
+
+      const CO2 = {
+        "Alkohol (Bier)": 400,
+        "Zigaretten": 14,
+        "Vapes": 80,
+        "Cannabis": 100,
+        "MDMA": 50,
+        "Kokain": 150,
+        "Speed": 120,
+        "LSD": 0.0005,
+        "Benzodiazepine": 10,
+        "Ketamin": 200
+      };
+
+      const farben = [
+        "#1abc9c", "#2ecc71", "#3498db", "#9b59b6", "#f39c12",
+        "#e74c3c", "#95a5a6", "#e67e22", "#16a085", "#c0392b"
+      ];
+
+      let total = 0;
+      const beitragProDroge = {};
+      Object.keys(eingaben).forEach(name => {
+        const menge = eingaben[name];
+        const beitrag = menge * CO2[name];
+        beitragProDroge[name] = beitrag;
+        total += beitrag;
+      });
+
+      const km = total / 120;
+
+      // Gesamtausgabe
+      const ausgabe = document.getElementById("ausgabe");
+      ausgabe.innerHTML = `
+        <strong>Gesamter CO₂-Ausstoß:</strong> ${total.toFixed(2)} g<br>
+        Entspricht ca. ${km.toFixed(2)} km Autofahrt 🚗
+      `;
+      ausgabe.style.display = "block";
+
+      // Tabelle + Diagramm mit synchronen Farben
+      const tabelle = document.getElementById("tabelle");
+      let rows = "";
+      const labels = [];
+      const werte = [];
+      const farbenAktiv = [];
+
+      Object.entries(beitragProDroge).forEach(([name, co2], i) => {
+        if (co2 > 0) {
+          labels.push(name);
+          werte.push(co2);
+          farbenAktiv.push(farben[i]);
+          rows += `<tr><td style="color:${farben[i]}">${name}</td><td>${co2.toFixed(2)} g</td></tr>`;
+        }
+      });
+
+      tabelle.innerHTML = `
+        <h3>Beitrag je Substanz:</h3>
+        <table>
+          <tr><th>Substanz</th><th>CO₂-Ausstoß</th></tr>
+          ${rows}
+        </table>
+      `;
+      tabelle.style.display = "block";
+
+      const canvas = document.getElementById("diagramm");
+      if (chart) chart.destroy();
+      chart = new Chart(canvas, {
+        type: "pie",
+        data: {
+          labels: labels,
+          datasets: [{
+            data: werte,
+            backgroundColor: farbenAktiv
+          }]
+        },
+        options: {
+          responsive: true
+        }
+      });
+      canvas.style.display = "block";
+    }
+  </script>
+</body>
+</html>
