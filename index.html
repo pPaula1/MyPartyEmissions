@@ -2,175 +2,148 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
-  <title>Drogen CO₂-Rechner</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Party Emissions</title>
   <style>
+    :root {
+      color-scheme: light;
+      --ink: #18212f;
+      --muted: #5b6472;
+      --paper: #f5f7f2;
+      --panel: rgba(255, 255, 255, 0.9);
+      --green: #1b8f6a;
+      --blue: #315f99;
+      --orange: #d46d2c;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: sans-serif;
-      max-width: 700px;
-      margin: 40px auto;
-      padding: 20px;
-      background: #f4f4f4;
-      border-radius: 10px;
+      min-height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(245, 247, 242, 0.72), rgba(245, 247, 242, 0.9)),
+        url("data:image/svg+xml,%3Csvg width='1200' height='800' viewBox='0 0 1200 800' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='1200' height='800' fill='%23e8efe8'/%3E%3Cpath d='M0 620C160 560 300 670 460 600s275-245 458-196 230 220 282 174v222H0z' fill='%2397c7b1'/%3E%3Cpath d='M0 508c133-94 254-57 372-98s216-170 376-125 274 159 452 111v404H0z' fill='%2382a9cf' opacity='.72'/%3E%3Ccircle cx='960' cy='170' r='92' fill='%23f2b46f' opacity='.8'/%3E%3C/svg%3E");
+      background-size: cover;
+      background-position: center;
     }
-    label {
-      font-weight: bold;
+
+    main {
+      min-height: calc(100vh - 64px);
+      display: grid;
+      align-items: center;
+      padding: 32px 20px;
     }
-    input {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 15px;
+
+    .hero {
+      width: min(960px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 28px;
     }
-    .result {
-      margin-top: 20px;
-      background: white;
-      padding: 15px;
+
+    .hero-copy {
+      max-width: 760px;
+      padding: 32px;
+      background: var(--panel);
+      border: 1px solid rgba(24, 33, 47, 0.12);
       border-radius: 8px;
+      box-shadow: 0 18px 40px rgba(24, 33, 47, 0.16);
     }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: clamp(2.2rem, 6vw, 4.8rem);
+      line-height: 1;
+      letter-spacing: 0;
     }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 6px 10px;
-      text-align: left;
+
+    p {
+      max-width: 620px;
+      margin: 0 0 24px;
+      color: var(--muted);
+      font-size: 1.1rem;
+      line-height: 1.55;
     }
-    canvas {
-      margin-top: 20px;
+
+    .authors {
+      margin-bottom: 28px;
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    a.button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 12px 18px;
+      border-radius: 6px;
+      color: #fff;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .primary {
+      background: var(--orange);
+    }
+
+    .secondary {
+      background: var(--blue);
+    }
+
+    footer {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.74);
+    }
+
+    footer a {
+      color: var(--ink);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    @media (max-width: 640px) {
+      .hero-copy {
+        padding: 24px;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Drogen CO₂-Rechner 💨</h1>
-  <form id="form">
-    <label>Alkohol (Bier) in Litern:</label>
-    <input type="number" id="alkohol" step="0.1">
-    <label>Nikotin (Zigaretten) pro Stück:</label>
-    <input type="number" id="zigaretten" step="1">
-    <label>Nikotin (Vapes) pro Stück:</label>
-    <input type="number" id="vapes" step="1">
-    <label>Cannabis (Gramm):</label>
-    <input type="number" id="cannabis" step="0.1">
-    <label>MDMA / Ecstasy (Tabletten):</label>
-    <input type="number" id="mdma" step="1">
-    <label>Kokain (Gramm):</label>
-    <input type="number" id="kokain" step="0.1">
-    <label>Amphetamine / Speed (Gramm):</label>
-    <input type="number" id="speed" step="0.1">
-    <label>LSD (Mikrogramm):</label>
-    <input type="number" id="lsd" step="10">
-    <label>Benzodiazepine (Tabletten):</label>
-    <input type="number" id="benzos" step="1">
-    <label>Ketamin (Gramm):</label>
-    <input type="number" id="ketamin" step="0.1">
-
-    <button type="button" onclick="berechnen()">Berechnen</button>
-  </form>
-
-  <div class="result" id="ausgabe" style="display:none;"></div>
-  <div id="tabelle" class="result" style="display:none;"></div>
-  <canvas id="diagramm" width="400" height="400" style="display:none;"></canvas>
-
-  <script>
-    let chart;
-
-    function berechnen() {
-      const getVal = id => parseFloat(document.getElementById(id).value) || 0;
-
-      const eingaben = {
-        "Alkohol (Bier)": getVal("alkohol"),
-        "Zigaretten": getVal("zigaretten"),
-        "Vapes": getVal("vapes"),
-        "Cannabis": getVal("cannabis"),
-        "MDMA": getVal("mdma"),
-        "Kokain": getVal("kokain"),
-        "Speed": getVal("speed"),
-        "LSD": getVal("lsd"),
-        "Benzodiazepine": getVal("benzos"),
-        "Ketamin": getVal("ketamin")
-      };
-
-      const CO2 = {
-        "Alkohol (Bier)": 400,
-        "Zigaretten": 14,
-        "Vapes": 80,
-        "Cannabis": 100,
-        "MDMA": 50,
-        "Kokain": 150,
-        "Speed": 120,
-        "LSD": 0.0005,
-        "Benzodiazepine": 10,
-        "Ketamin": 200
-      };
-
-      const farben = [
-        "#1abc9c", "#2ecc71", "#3498db", "#9b59b6", "#f39c12",
-        "#e74c3c", "#95a5a6", "#e67e22", "#16a085", "#c0392b"
-      ];
-
-      let total = 0;
-      const beitragProDroge = {};
-      Object.keys(eingaben).forEach(name => {
-        const menge = eingaben[name];
-        const beitrag = menge * CO2[name];
-        beitragProDroge[name] = beitrag;
-        total += beitrag;
-      });
-
-      const km = total / 120;
-
-      // Gesamtausgabe
-      const ausgabe = document.getElementById("ausgabe");
-      ausgabe.innerHTML = `
-        <strong>Gesamter CO₂-Ausstoß:</strong> ${total.toFixed(2)} g<br>
-        Entspricht ca. ${km.toFixed(2)} km Autofahrt 🚗
-      `;
-      ausgabe.style.display = "block";
-
-      // Tabelle + Diagramm mit synchronen Farben
-      const tabelle = document.getElementById("tabelle");
-      let rows = "";
-      const labels = [];
-      const werte = [];
-      const farbenAktiv = [];
-
-      Object.entries(beitragProDroge).forEach(([name, co2], i) => {
-        if (co2 > 0) {
-          labels.push(name);
-          werte.push(co2);
-          farbenAktiv.push(farben[i]);
-          rows += `<tr><td style="color:${farben[i]}">${name}</td><td>${co2.toFixed(2)} g</td></tr>`;
-        }
-      });
-
-      tabelle.innerHTML = `
-        <h3>Beitrag je Substanz:</h3>
-        <table>
-          <tr><th>Substanz</th><th>CO₂-Ausstoß</th></tr>
-          ${rows}
-        </table>
-      `;
-      tabelle.style.display = "block";
-
-      const canvas = document.getElementById("diagramm");
-      if (chart) chart.destroy();
-      chart = new Chart(canvas, {
-        type: "pie",
-        data: {
-          labels: labels,
-          datasets: [{
-            data: werte,
-            backgroundColor: farbenAktiv
-          }]
-        },
-        options: {
-          responsive: true
-        }
-      });
-      canvas.style.display = "block";
-    }
-  </script>
+  <main>
+    <section class="hero" aria-labelledby="headline">
+      <div class="hero-copy">
+        <h1 id="headline">My Party Emissions</h1>
+        <p>Wie hoch ist der CO2-Fußabdruck eines Partyabends? Der Rechner schätzt Emissionen und zeigt zusätzliche ökologische und soziale Auswirkungen verschiedener Substanzen.</p>
+        <div class="authors">Presented by Paula & Eddy</div>
+        <div class="actions">
+          <a class="button primary" href="calculator.html">CO2-Rechner starten</a>
+          <a class="button secondary" href="sources.html">Quellen ansehen</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <a href="sources.html">Quellen</a>
+    <a href="impressum.html">Impressum</a>
+  </footer>
 </body>
 </html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CO2-Rechner - My Party Emissions</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --ink: #18212f;
+      --muted: #5b6472;
+      --line: #d9ded8;
+      --paper: #f5f7f2;
+      --panel: #ffffff;
+      --green: #1b8f6a;
+      --red: #b8473a;
+      --blue: #315f99;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: var(--ink);
+      background: var(--paper);
+    }
+
+    header, main, footer {
+      width: min(980px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    header {
+      padding: 28px 0 18px;
+    }
+
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+
+    nav a, footer a {
+      color: var(--blue);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 2.3rem;
+      letter-spacing: 0;
+    }
+
+    .intro {
+      max-width: 720px;
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 360px;
+      gap: 22px;
+      align-items: start;
+      padding-bottom: 36px;
+    }
+
+    form, .result, .impacts, .chart-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--ink);
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    label span {
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 400;
+    }
+
+    input {
+      width: 100%;
+      min-height: 42px;
+      padding: 8px 10px;
+      border: 1px solid #bdc7bf;
+      border-radius: 5px;
+      font: inherit;
+    }
+
+    .buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    button {
+      min-height: 42px;
+      padding: 10px 16px;
+      border: 0;
+      border-radius: 5px;
+      color: white;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 700;
+    }
+
+    .calc-btn {
+      background: var(--green);
+    }
+
+    .reset-btn {
+      background: var(--red);
+    }
+
+    .side {
+      display: grid;
+      gap: 16px;
+    }
+
+    .result, .impacts, .chart-panel {
+      display: none;
+    }
+
+    .total {
+      font-size: 1.6rem;
+      font-weight: 800;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 0.95rem;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 6px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th:last-child, td:last-child {
+      text-align: right;
+    }
+
+    ul {
+      margin: 10px 0 0;
+      padding-left: 20px;
+      line-height: 1.5;
+    }
+
+    canvas {
+      width: 100%;
+      max-height: 340px;
+    }
+
+    footer {
+      display: flex;
+      gap: 16px;
+      padding: 0 0 28px;
+    }
+
+    @media (max-width: 860px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="index.html">Start</a>
+      <a href="sources.html">Quellen</a>
+      <a href="impressum.html">Impressum</a>
+    </nav>
+    <h1>CO2-Rechner</h1>
+    <p class="intro">Die Werte sind grobe Schätzungen zur Sensibilisierung. Sie ersetzen keine wissenschaftliche Bilanzierung und keine rechtliche, medizinische oder psychologische Beratung.</p>
+  </header>
+
+  <main class="layout">
+    <form id="form">
+      <div class="grid">
+        <label>Alkohol, Bier
+          <span>Liter</span>
+          <input type="number" id="alcohol" min="0" step="0.1">
+        </label>
+        <label>Zigaretten
+          <span>Stück</span>
+          <input type="number" id="cigarettes" min="0" step="1">
+        </label>
+        <label>Vapes
+          <span>Stück</span>
+          <input type="number" id="vapes" min="0" step="1">
+        </label>
+        <label>Cannabis
+          <span>Gramm</span>
+          <input type="number" id="cannabis" min="0" step="0.1">
+        </label>
+        <label>MDMA / Ecstasy
+          <span>Milligramm</span>
+          <input type="number" id="mdma" min="0" step="1">
+        </label>
+        <label>Kokain
+          <span>Gramm</span>
+          <input type="number" id="cocaine" min="0" step="0.1">
+        </label>
+        <label>Amphetamine / Speed
+          <span>Gramm</span>
+          <input type="number" id="speed" min="0" step="0.1">
+        </label>
+        <label>LSD
+          <span>Blotter, ca. 125 Mikrogramm</span>
+          <input type="number" id="lsd" min="0" step="1">
+        </label>
+        <label>Benzodiazepine
+          <span>Tabletten</span>
+          <input type="number" id="benzos" min="0" step="1">
+        </label>
+        <label>Ketamin
+          <span>Gramm</span>
+          <input type="number" id="ketamine" min="0" step="0.1">
+        </label>
+        <label>Psilocybin
+          <span>Gramm Pilze</span>
+          <input type="number" id="psilocybin" min="0" step="0.1">
+        </label>
+      </div>
+      <div class="buttons">
+        <button type="button" class="calc-btn" onclick="calculate()">Berechnen</button>
+        <button type="button" class="reset-btn" onclick="resetForm()">Zurücksetzen</button>
+      </div>
+    </form>
+
+    <section class="side" aria-live="polite">
+      <div class="result" id="output"></div>
+      <div class="result" id="table"></div>
+      <div class="impacts" id="impacts"></div>
+      <div class="chart-panel" id="chartPanel">
+        <canvas id="chart" width="400" height="400"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <a href="sources.html">Quellen</a>
+    <a href="impressum.html">Impressum</a>
+  </footer>
+
+  <script>
+    let chart;
+
+    const substances = [
+      { id: "alcohol", name: "Alkohol (Bier)", factor: 500, unit: "g CO2e pro Liter", impacts: "Hoher Wasserverbrauch, Dünger- und Pestizideinsatz, Verpackungsabfälle" },
+      { id: "cigarettes", name: "Zigaretten", factor: 14, unit: "g CO2e pro Stück", impacts: "Entwaldung, Bodendegradation, hoher Wasserverbrauch, Littering, Kinderarbeit" },
+      { id: "vapes", name: "Vapes", factor: 80, unit: "g CO2e pro Stück", impacts: "Elektroschrott, Batterie- und Kunststoffabfälle" },
+      { id: "cannabis", name: "Cannabis", factor: 5, unit: "g CO2e pro Gramm", impacts: "Wasserverbrauch, Energiebedarf bei Indoor-Anbau" },
+      { id: "mdma", name: "MDMA", factor: 700 / 1000, unit: "g CO2e pro mg", impacts: "Chemische Abfälle, illegale Beschaffung von Vorläuferstoffen, Abwasserbehandlung" },
+      { id: "cocaine", name: "Kokain", factor: 4000, unit: "g CO2e pro Gramm", impacts: "Entwaldung, Bodendegradation, Biodiversitätsverlust, Wasserverschmutzung, chemische Abfälle, Gewalt und Korruption" },
+      { id: "speed", name: "Amphetamine / Speed", factor: 62, unit: "g CO2e pro Gramm", impacts: "Chemische Abfälle und Abwasserbehandlung" },
+      { id: "lsd", name: "LSD", factor: 0.000005, unit: "g CO2e pro Blotter", impacts: "Chemische Abfälle, Vorläuferstoffe und Abwasserbehandlung" },
+      { id: "benzos", name: "Benzodiazepine", factor: 10, unit: "g CO2e pro Tablette", impacts: "Pharmazeutische Produktion, Verpackung und Abwasserbelastung" },
+      { id: "ketamine", name: "Ketamin", factor: 26, unit: "g CO2e pro Gramm", impacts: "Chemische Abfälle und Abwasserbehandlung" },
+      { id: "psilocybin", name: "Psilocybin", factor: 0.000003, unit: "g CO2e pro Gramm", impacts: "" }
+    ];
+
+    const colors = [
+      "#1b8f6a", "#315f99", "#d46d2c", "#7a4f9a", "#c48a22",
+      "#b8473a", "#75828f", "#267a83", "#8a7b35", "#2f7d4e", "#6d7993"
+    ];
+
+    function getValue(id) {
+      return parseFloat(document.getElementById(id).value) || 0;
+    }
+
+    function formatCO2(co2) {
+      return co2 > 0 && co2 < 0.01 ? "< 0,01 g" : `${co2.toFixed(2).replace(".", ",")} g`;
+    }
+
+    function calculate() {
+      const contributions = substances.map((substance, index) => {
+        const amount = getValue(substance.id);
+        return {
+          ...substance,
+          amount,
+          color: colors[index],
+          co2: amount * substance.factor
+        };
+      });
+
+      const active = contributions.filter(item => item.co2 > 0);
+      const total = active.reduce((sum, item) => sum + item.co2, 0);
+      const km = total / 120;
+
+      const output = document.getElementById("output");
+      output.innerHTML = `
+        <div class="total">${formatCO2(total)}</div>
+        <div>Gesamter CO2-Ausstoß, entspricht ca. ${km.toFixed(2).replace(".", ",")} km Autofahrt.</div>
+      `;
+      output.style.display = "block";
+
+      const table = document.getElementById("table");
+      const rows = active.map(item => `
+        <tr>
+          <td style="color:${item.color}"><strong>${item.name}</strong><br><span>${item.unit}</span></td>
+          <td>${formatCO2(item.co2)}</td>
+        </tr>
+      `).join("");
+      table.innerHTML = `
+        <h2>Beitrag je Substanz</h2>
+        <table>
+          <tr><th>Substanz</th><th>CO2</th></tr>
+          ${rows || "<tr><td colspan=\"2\">Noch keine Eingaben.</td></tr>"}
+        </table>
+      `;
+      table.style.display = "block";
+
+      const impacts = document.getElementById("impacts");
+      const impactItems = active
+        .filter(item => item.impacts)
+        .map(item => `<li><strong>${item.name}:</strong> ${item.impacts}</li>`)
+        .join("");
+      impacts.innerHTML = `<h2>Weitere Umwelt- und Sozialwirkungen</h2><ul>${impactItems || "<li>Keine zusätzlichen Hinweise für die aktuelle Auswahl.</li>"}</ul>`;
+      impacts.style.display = "block";
+
+      const chartPanel = document.getElementById("chartPanel");
+      const canvas = document.getElementById("chart");
+      if (chart) chart.destroy();
+      chart = new Chart(canvas, {
+        type: "pie",
+        data: {
+          labels: active.map(item => item.name),
+          datasets: [{
+            data: active.map(item => item.co2),
+            backgroundColor: active.map(item => item.color)
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: "bottom"
+            }
+          }
+        }
+      });
+      chartPanel.style.display = active.length ? "block" : "none";
+    }
+
+    function resetForm() {
+      document.getElementById("form").reset();
+      document.getElementById("output").style.display = "none";
+      document.getElementById("table").style.display = "none";
+      document.getElementById("impacts").style.display = "none";
+      document.getElementById("chartPanel").style.display = "none";
+      if (chart) chart.destroy();
+    }
+  </script>
+</body>
+</html>
