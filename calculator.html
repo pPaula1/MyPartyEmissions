@@ -63,6 +63,17 @@
       line-height: 1.55;
     }
 
+    .notice {
+      max-width: 780px;
+      margin: 18px 0 0;
+      padding: 12px 14px;
+      border-left: 4px solid var(--red);
+      background: #fff7f4;
+      border-radius: 5px;
+      color: #57302b;
+      line-height: 1.45;
+    }
+
     .layout {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 360px;
@@ -185,12 +196,38 @@
     @media (max-width: 860px) {
       .layout {
         grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .side {
+        margin-top: -2px;
       }
     }
 
     @media (max-width: 620px) {
+      header, main, footer {
+        width: min(100% - 20px, 980px);
+      }
+
+      header {
+        padding-top: 18px;
+      }
+
       .grid {
         grid-template-columns: 1fr;
+      }
+
+      form, .result, .impacts, .chart-panel {
+        padding: 14px;
+      }
+
+      .buttons {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+
+      button {
+        width: 100%;
       }
     }
   </style>
@@ -204,6 +241,7 @@
     </nav>
     <h1>CO2-Rechner</h1>
     <p class="intro">Die Werte sind grobe Schätzungen zur Sensibilisierung. Sie ersetzen keine wissenschaftliche Bilanzierung und keine rechtliche, medizinische oder psychologische Beratung.</p>
+    <p class="notice">Hinweis: Dieser Rechner ist eine grobe Schätzung und keine Konsumempfehlung. Er verharmlost keine illegalen Substanzen und bietet keine medizinische, psychologische oder rechtliche Beratung.</p>
   </header>
 
   <main class="layout">
@@ -217,7 +255,7 @@
           <span>Stück</span>
           <input type="number" id="cigarettes" min="0" step="1">
         </label>
-        <label>Vapes
+        <label>Vapes (Einweg-Vape)
           <span>Stück</span>
           <input type="number" id="vapes" min="0" step="1">
         </label>
@@ -281,7 +319,7 @@
     const substances = [
       { id: "alcohol", name: "Alkohol (Bier)", factor: 500, unit: "g CO2e pro Liter", impacts: "Hoher Wasserverbrauch, Dünger- und Pestizideinsatz, Verpackungsabfälle" },
       { id: "cigarettes", name: "Zigaretten", factor: 14, unit: "g CO2e pro Stück", impacts: "Entwaldung, Bodendegradation, hoher Wasserverbrauch, Littering, Kinderarbeit" },
-      { id: "vapes", name: "Vapes", factor: 80, unit: "g CO2e pro Stück", impacts: "Elektroschrott, Batterie- und Kunststoffabfälle" },
+      { id: "vapes", name: "Vapes (Einweg-Vape)", factor: 350, unit: "g CO2e pro Stück", impacts: "Elektroschrott, Batterie- und Kunststoffabfälle" },
       { id: "cannabis", name: "Cannabis", factor: 5, unit: "g CO2e pro Gramm", impacts: "Wasserverbrauch, Energiebedarf bei Indoor-Anbau" },
       { id: "mdma", name: "MDMA", factor: 700 / 1000, unit: "g CO2e pro mg", impacts: "Chemische Abfälle, illegale Beschaffung von Vorläuferstoffen, Abwasserbehandlung" },
       { id: "cocaine", name: "Kokain", factor: 4000, unit: "g CO2e pro Gramm", impacts: "Entwaldung, Bodendegradation, Biodiversitätsverlust, Wasserverschmutzung, chemische Abfälle, Gewalt und Korruption" },
@@ -326,6 +364,9 @@
         <div>Gesamter CO2-Ausstoß, entspricht ca. ${km.toFixed(2).replace(".", ",")} km Autofahrt.</div>
       `;
       output.style.display = "block";
+      if (window.matchMedia("(max-width: 860px)").matches) {
+        output.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
 
       const table = document.getElementById("table");
       const rows = active.map(item => `
